@@ -13,45 +13,47 @@ const AuthForm = () => {
   };
 
   const submitHandler = async (event) => {
-    setIsSending(true)
+    setIsSending(true);
     event.preventDefault();
     const enteredEmail = emailRef.current.value;
     const enteredPassword = passwordRef.current.value;
 
-    if (isLogin) {
-
-    } else {
-      try {
-        const response = await fetch(
-          "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyAdWaec3CQD6wpKWWdd0ezQhHACyW41ZcM",
-          {
-            method: "POST",
-            body: JSON.stringify({
-              email: enteredEmail,
-              password: enteredPassword,
-              returnSecureToken: true,
-            }),
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        const data = await response.json();
-        if(!response.ok){
-          let errorMessage = "Authentication Failed";
-          if (data && data.error && data.error.message) {
-            errorMessage = data.error.message;
-          }
-          alert(errorMessage);
-        }
-        else{
-          alert('Signup Successfull')
-        }
-        setIsSending(false)
-      } catch (err) {
-        // console.log(err)
+    try {
+      let url;
+      if (isLogin) {
+        url ="https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAdWaec3CQD6wpKWWdd0ezQhHACyW41ZcM";
+      } 
+      else {
+        url = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyAdWaec3CQD6wpKWWdd0ezQhHACyW41ZcM";
       }
+      const response = await fetch(url,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            email: enteredEmail,
+            password: enteredPassword,
+            returnSecureToken: true,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+        console.log(response)
+      const data = await response.json();
+      setIsSending(false);
+      if(response.ok){
+        console.log(data)
+      }
+      else {
+        let errorMessage = "Auth Failed";
+        if (data && data.error && data.error.message) {
+          errorMessage = data.error.message;
+        }
+        throw new Error(errorMessage);
+      } 
+    } catch (err) {
+      alert(err.message)
     }
   };
 
@@ -68,7 +70,9 @@ const AuthForm = () => {
           <input type="password" id="password" required ref={passwordRef} />
         </div>
         <div className={classes.actions}>
-          {!isSending && <button>{isLogin ? "Login" : "Create Account"}</button>}
+          {!isSending && (
+            <button>{isLogin ? "Login" : "Create Account"}</button>
+          )}
           {isSending && <p>Sending request...</p>}
           <button
             type="button"
